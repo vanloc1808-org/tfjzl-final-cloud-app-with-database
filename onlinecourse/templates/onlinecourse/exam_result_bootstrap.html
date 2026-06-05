@@ -1,55 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    {% load static %}
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-</head>
-<body>
+{% load static %}
 
- <nav class="navbar navbar-light bg-light">
-    <div class="container-fluid">
-        <div class="navbar-header">
-              <a class="navbar-brand" href="{% url 'onlinecourse:index' %}">Home</a>
-        </div>
-        <ul class="nav navbar-nav navbar-right">
-            {% if user.is_authenticated %}
-            <li>
-                <a class="btn btn-link" href="#">{{ user.first_name }}({{ user.username }})</a>
-                <a class="btn btn-link" href="{% url 'onlinecourse:logout' %}">Logout</a>
-            </li>
-            {% else %}
-            <li>
-                <form class="form-inline" action="{% url 'onlinecourse:login' %}" method="post">
-                    {% csrf_token %}
-                    <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Username" name="username" >
-                        <input type="password" class="form-control" placeholder="Username" name="psw" >
-                        <button class="btn btn-primary" type="submit">Login</button>
-                        <a class="btn btn-link" href="{% url 'onlinecourse:registration' %}">Sign Up</a>
-                    </div>
-                </form>
-            </li>
-            {% endif %}
-        </ul>
-    </div>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Exam Result</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+
+<body>
+<nav class="navbar navbar-light bg-light">
+    <a class="navbar-brand" href="{% url 'onlinecourse:index' %}">Home</a>
+
+    <ul class="navbar-nav">
+        {% if user.is_authenticated %}
+        <li class="nav-item">
+            {{ user.first_name }}({{ user.username }})
+            <a class="btn btn-link" href="{% url 'onlinecourse:logout' %}">Logout</a>
+        </li>
+        {% else %}
+        <li class="nav-item">
+            <a class="btn btn-link" href="{% url 'onlinecourse:login' %}">Login</a>
+            <a class="btn btn-link" href="{% url 'onlinecourse:registration' %}">Sign Up</a>
+        </li>
+        {% endif %}
+    </ul>
 </nav>
 
-<div class="container-fluid">
+<div class="container mt-4">
     {% if grade > 80 %}
     <div class="alert alert-success">
-       <!--HINT Display passed info -->
+        Congratulations, you passed the exam!
     </div>
-        {% else %}
-        <div class="alert alert-danger">
-            <!--HINT Display failed info -->
+    {% else %}
+    <div class="alert alert-danger">
+        Failed. Please try again.
+        <a href="{% url 'onlinecourse:course_details' course.id %}">Re-test</a>
+    </div>
+    {% endif %}
+
+    <h4>Exam results</h4>
+    <p>Your score: {{ grade }}</p>
+
+    {% for question in course.question_set.all %}
+    <div class="card mb-3">
+        <div class="card-header">
+            <strong>{{ question.question_text }}</strong>
         </div>
-        <a class="btn btn-link text-danger" href="{% url 'onlinecourse:course_details' course.id %}">Re-test</a>
-        {% endif %}
-        <div class="card-columns-vertical mt-1">
-        <h5 class="">Exam results</h5>
-            <!--HINT Display exam results-->
+
+        <div class="card-body">
+            {% for choice in question.choice_set.all %}
+                {% if choice in selected_choices %}
+                    {% if choice.is_correct %}
+                    <p class="text-success">Selected: {{ choice.choice_text }} - Correct</p>
+                    {% else %}
+                    <p class="text-danger">Selected: {{ choice.choice_text }} - Incorrect</p>
+                    {% endif %}
+                {% else %}
+                    <p>{{ choice.choice_text }}</p>
+                {% endif %}
+            {% endfor %}
         </div>
     </div>
+    {% endfor %}
+</div>
 </body>
 </html>
